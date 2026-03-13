@@ -1,110 +1,54 @@
-# Even G2 RE Workspace
+# Even G2 BLE Reverse Engineering
 
-Questa cartella raccoglie il materiale di reverse engineering per il protocollo
-BLE e il rendering display degli Even G2.
+This repository collects notes, logs, scripts, and experiments related to the
+BLE protocol used by the Even G2 glasses.
 
-L'obiettivo pratico del repo non è generico: ricostruire il path reale di invio
-verso gli occhiali, in particolare il payload dashboard/render su `serviceId=8`
-e i comandi `cmdId=7` / `cmdId=8`.
+The main goal is narrow and practical:
 
-## Stato attuale
+- recover the real dashboard/render send path used by the official app
+- understand the real payloads behind `serviceId=8`
+- reconstruct the true meaning of `cmdId=7` and `cmdId=8`
 
-- Il transport reale `AA 12` è confermato.
-- La sequenza auth legacy `AA 21` è nota ed è già stata testata.
-- Il bridge BLE Android decriptato dai DEX è sufficiente per confermare:
+## Why this matters
+
+BLE connectivity is not the hard part anymore. The hard part is reproducing the
+same logical payloads that the official app sends during a real display update.
+
+At this point, the main unknown is not transport, but application-layer
+structure.
+
+## What is already confirmed
+
+- The real transport format is `AA 12`.
+- The legacy auth path `AA 21` is known.
+- The decrypted Android BLE bridge confirms:
   - `WRITE_TYPE_NO_RESPONSE`
-  - routing per `psType`
-  - MTU di default `247`
-- Il gap principale resta nel layer Flutter `libapp.so`:
-  - payload reale `cmdId=7` create-page
-  - payload reale `cmdId=8` image update
-  - field mapping protobuf esatto
+  - `psType` is a real channel selector
+  - default MTU is `247`
+- The official app talks to both lenses.
+- Real display updates have been observed on the right lens as repeated bursts
+  shaped like `244,244,X`.
 
-## Punto chiave
+## What is still unknown
 
-Il problema non è più "come inviare qualcosa via BLE", ma "quale struttura
-protobuf e quale contenitore immagine usa davvero l'app ufficiale".
+- the exact `cmdId=7` create-page payload
+- the exact `cmdId=8` image-update payload
+- the protobuf field mapping used by the Flutter app
+- the exact relationship between page/container metadata and image data
 
-In base ai report e al RE statico attuale:
+## Current best model
 
-- `cmdId=7` è quasi certamente un vero messaggio container/pagina
-- `cmdId=8` è quasi certamente un vero image update con metadati + bytes
-- la frammentazione succede dopo la costruzione del comando logico
-- l'app ufficiale parla con entrambe le lenti
+Based on the available logs, DEX analysis, and static reverse engineering of
+`libapp.so`:
 
-## Lettura consigliata
+- `cmdId=7` is almost certainly a real page/container creation message
+- `cmdId=8` is almost certainly a real image-update message
+- transport fragmentation happens after the logical protobuf is built
+- the image path likely includes metadata, not just raw BMP bytes
 
-1. [CURRENT_RE_FINDINGS.md](/home/loneobs/Code/Even/RE/even-apks/base/CURRENT_RE_FINDINGS.md)
-2. [REPORT_BLE_PROTOCOL.md](/home/loneobs/Code/Even/RE/even-apks/base/REPORT_BLE_PROTOCOL.md)
-3. [REPORT_APP_ANALYSIS.md](/home/loneobs/Code/Even/RE/even-apks/base/REPORT_APP_ANALYSIS.md)
-4. [REPORT_UNPACKING.md](/home/loneobs/Code/Even/RE/even-apks/base/REPORT_UNPACKING.md)
+## Main findings from `libapp.so`
 
-Per il RE statico più recente di `libapp.so`:
-
-- [LIBAPP_DASHBOARD_RE_FINDINGS.md](/home/loneobs/Code/Even/RE/even-apks/base/LIBAPP_DASHBOARD_RE_FINDINGS.md)
-- [DASHBOARD_PROTO_MAP.md](/home/loneobs/Code/Even/RE/even-apks/base/DASHBOARD_PROTO_MAP.md)
-
-## File chiave
-
-### Report
-
-- [HANDOFF_INDEX.md](/home/loneobs/Code/Even/RE/even-apks/base/HANDOFF_INDEX.md)
-- [DASHBOARD_OUTBOUND_MODEL.md](/home/loneobs/Code/Even/RE/even-apks/base/DASHBOARD_OUTBOUND_MODEL.md)
-- [DASHBOARD_PAYLOAD_CONSTRAINTS.md](/home/loneobs/Code/Even/RE/even-apks/base/DASHBOARD_PAYLOAD_CONSTRAINTS.md)
-- [DEX_BRIDGE_FINDINGS.md](/home/loneobs/Code/Even/RE/even-apks/base/DEX_BRIDGE_FINDINGS.md)
-
-### Log e capture
-
-- [dashboard-logcat.txt](/home/loneobs/Code/Even/RE/even-apks/base/dashboard-logcat.txt)
-- [teleprompter-logcat.txt](/home/loneobs/Code/Even/RE/even-apks/base/teleprompter-logcat.txt)
-- [navigation-logcat.txt](/home/loneobs/Code/Even/RE/even-apks/base/navigation-logcat.txt)
-- [even-current-logcat.txt](/home/loneobs/Code/Even/RE/even-apks/base/even-current-logcat.txt)
-- [even-current-bt.log](/home/loneobs/Code/Even/RE/even-apks/base/even-current-bt.log)
-- [Captured.pcapng](/home/loneobs/Code/Even/RE/even-apks/base/Captured.pcapng)
-- [Captured2.pcapng](/home/loneobs/Code/Even/RE/even-apks/base/Captured2.pcapng)
-
-Nota:
-
-- le capture nRF presenti finora non contengono i payload ATT utili; mostrano
-  advertising e tentativi di connessione, non il traffico GATT completo seguito
-  dal dongle
-
-### Script di analisi
-
-- [even_protocol.py](/home/loneobs/Code/Even/RE/even-apks/base/even_protocol.py)
-- [decode_even_packets.py](/home/loneobs/Code/Even/RE/even-apks/base/decode_even_packets.py)
-- [parse_log.py](/home/loneobs/Code/Even/RE/even-apks/base/parse_log.py)
-- [analyze_even_logcat.py](/home/loneobs/Code/Even/RE/even-apks/base/analyze_even_logcat.py)
-- [compare_even_bursts.py](/home/loneobs/Code/Even/RE/even-apks/base/compare_even_bursts.py)
-- [timeline_even_render.py](/home/loneobs/Code/Even/RE/even-apks/base/timeline_even_render.py)
-
-### Sender sperimentali
-
-- [send_image_real.py](/home/loneobs/Code/Even/RE/even-apks/base/send_image_real.py)
-- [server.py](/home/loneobs/Code/Even/RE/even-apks/base/server.py)
-- [probe_render_path.py](/home/loneobs/Code/Even/RE/even-apks/base/probe_render_path.py)
-
-### Hook / Android
-
-- [frida_hook_even_ble.js](/home/loneobs/Code/Even/RE/even-apks/base/frida_hook_even_ble.js)
-- [FRIDA_CAPTURE_RUNBOOK.md](/home/loneobs/Code/Even/RE/even-apks/base/FRIDA_CAPTURE_RUNBOOK.md)
-- [ARM64_CAPTURE_OPTIONS.md](/home/loneobs/Code/Even/RE/even-apks/base/ARM64_CAPTURE_OPTIONS.md)
-- [X86_BASE_ONLY_MEMDEX3_RUNBOOK.md](/home/loneobs/Code/Even/RE/even-apks/base/X86_BASE_ONLY_MEMDEX3_RUNBOOK.md)
-
-## APK e artefatti
-
-La cartella usa questi APK vicini nel repo:
-
-- `/home/loneobs/Code/Even/RE/even-apks/base.apk`
-- `/home/loneobs/Code/Even/RE/even-apks/split_config.arm64_v8a.apk`
-
-I DEX decriptati sono già presenti in:
-
-- [decrypted_dex](/home/loneobs/Code/Even/RE/even-apks/base/decrypted_dex)
-
-## RE statico di libapp.so
-
-Dal RE statico attuale del binary Flutter AOT risultano confermati almeno:
+Static analysis of the Flutter AOT binary currently confirms the existence of:
 
 - `DashboardDataPackage`
 - `AppRequest`
@@ -119,49 +63,113 @@ Dal RE statico attuale del binary Flutter AOT risultano confermati almeno:
 - `ProtoImage`
 - `ProtoUpdateWithImageCallArguments`
 
-In più:
+Additional useful structure:
 
-- `DashboardContent` sembra avere una `oneof` con:
+- `DashboardContent` appears to use a `oneof` with:
   - `singleData`
   - `multData`
   - `singleHighlight`
   - `multHighlight`
-- `DashboardDisplaySetting` espone almeno:
+- `DashboardDisplaySetting` exposes:
   - `gridDistance`
   - `gridHeight`
 
-Questa è la ragione per cui i sender "BMP in un campo e basta" non sono più
-considerati un modello plausibile del protocollo reale.
+This is strong evidence that the real app is building structured request and
+content wrappers, not just sending a naked image blob.
 
-## Sender attuale
+## Recommended reading order
 
-[send_image_real.py](/home/loneobs/Code/Even/RE/even-apks/base/send_image_real.py) supporta:
+Start here:
 
-- modalità `naive`
-- modalità `proto-map`
-- `--dry-run` per costruire e stampare i pacchetti senza BLE
-- scan automatico dei candidati Even G2
-- `--all-lenses` per provare il test su tutte le lenti trovate
+1. [CURRENT_RE_FINDINGS.md](CURRENT_RE_FINDINGS.md)
+2. [REPORT_BLE_PROTOCOL.md](REPORT_BLE_PROTOCOL.md)
+3. [REPORT_APP_ANALYSIS.md](REPORT_APP_ANALYSIS.md)
+4. [REPORT_UNPACKING.md](REPORT_UNPACKING.md)
 
-Esempio dry-run:
+Then read the newer `libapp.so`-focused notes:
+
+- [LIBAPP_DASHBOARD_RE_FINDINGS.md](LIBAPP_DASHBOARD_RE_FINDINGS.md)
+- [DASHBOARD_PROTO_MAP.md](DASHBOARD_PROTO_MAP.md)
+
+## Important files
+
+### Reports
+
+- [HANDOFF_INDEX.md](HANDOFF_INDEX.md)
+- [DASHBOARD_OUTBOUND_MODEL.md](DASHBOARD_OUTBOUND_MODEL.md)
+- [DASHBOARD_PAYLOAD_CONSTRAINTS.md](DASHBOARD_PAYLOAD_CONSTRAINTS.md)
+- [DEX_BRIDGE_FINDINGS.md](DEX_BRIDGE_FINDINGS.md)
+
+### Logs and captures
+
+- [dashboard-logcat.txt](dashboard-logcat.txt)
+- [teleprompter-logcat.txt](teleprompter-logcat.txt)
+- [navigation-logcat.txt](navigation-logcat.txt)
+- [even-current-logcat.txt](even-current-logcat.txt)
+- [even-current-bt.log](even-current-bt.log)
+- [Captured.pcapng](Captured.pcapng)
+- [Captured2.pcapng](Captured2.pcapng)
+
+Note:
+
+- The available nRF captures do not currently contain the ATT payloads needed
+  to reconstruct the real app traffic. They mostly show advertising and
+  connection attempts, not a correctly followed GATT session.
+
+### Analysis scripts
+
+- [even_protocol.py](even_protocol.py)
+- [decode_even_packets.py](decode_even_packets.py)
+- [parse_log.py](parse_log.py)
+- [analyze_even_logcat.py](analyze_even_logcat.py)
+- [compare_even_bursts.py](compare_even_bursts.py)
+- [timeline_even_render.py](timeline_even_render.py)
+
+### Experimental sender / probes
+
+- [send_image_real.py](send_image_real.py)
+- [server.py](server.py)
+- [probe_render_path.py](probe_render_path.py)
+
+### Android hook / capture material
+
+- [frida_hook_even_ble.js](frida_hook_even_ble.js)
+- [FRIDA_CAPTURE_RUNBOOK.md](FRIDA_CAPTURE_RUNBOOK.md)
+- [ARM64_CAPTURE_OPTIONS.md](ARM64_CAPTURE_OPTIONS.md)
+- [X86_BASE_ONLY_MEMDEX3_RUNBOOK.md](X86_BASE_ONLY_MEMDEX3_RUNBOOK.md)
+
+## Experimental sender
+
+`send_image_real.py` is not a faithful implementation of the official app. It
+is an informed probe.
+
+It currently supports:
+
+- `naive` mode
+- `proto-map` mode
+- `--dry-run` to build and inspect packets without BLE
+- automatic scanning of Even G2 candidates
+- `--all-lenses` to try the test against all discovered lenses
+
+Example dry-run:
 
 ```bash
-source /home/loneobs/Code/Even/RE/even-apks/base/.venv/bin/activate
+source .venv/bin/activate
 
-python /home/loneobs/Code/Even/RE/even-apks/base/send_image_real.py \
+python send_image_real.py \
   --dry-run \
   --mode proto-map \
   --width 8 \
   --height 8 \
-  /home/loneobs/Code/Even/RE/even-apks/base/test.png
+  test.png
 ```
 
-Esempio live su tutte le lenti trovate:
+Example live test against all discovered lenses:
 
 ```bash
-source /home/loneobs/Code/Even/RE/even-apks/base/.venv/bin/activate
+source .venv/bin/activate
 
-python /home/loneobs/Code/Even/RE/even-apks/base/send_image_real.py \
+python send_image_real.py \
   --mode proto-map \
   --all-lenses \
   --scan-timeout 10 \
@@ -172,30 +180,68 @@ python /home/loneobs/Code/Even/RE/even-apks/base/send_image_real.py \
   --compression-mode 1 \
   --width 8 \
   --height 8 \
-  /home/loneobs/Code/Even/RE/even-apks/base/test.png
+  test.png
 ```
 
-## Vincoli attuali
+## Current blockers
 
-- le capture passive nRF fatte finora non hanno seguito la connessione utile
-- HCI snoop sul telefono non ha esposto i payload che servivano
-- non c'è al momento un device `arm64` rootato disponibile per Frida
-- Genymotion / emulatori non hanno dato un path affidabile per i byte runtime
+The following paths have been tried and are currently blocked or incomplete:
 
-## Strategia consigliata
+- passive nRF capture that fails to follow the useful BLE connection
+- HCI snoop that does not expose the payloads we need
+- no rooted `arm64` Android target currently available for Frida capture
+- emulator / Genymotion paths that do not provide a reliable route to real
+  runtime bytes
 
-1. usare il RE statico di `libapp.so` per restringere ancora il modello
-2. trattare il sender Python come probe, non come implementazione fedele
-3. se possibile, tornare a una cattura runtime vera appena c'è un target migliore
+## What would be most valuable next
 
-## Ambiente Python
+The single most valuable next artifact would be:
 
-La venv locale è:
+- the real outbound bytes written by the official app during a visible display
+  update such as dashboard or teleprompter
 
-- `/home/loneobs/Code/Even/RE/even-apks/base/.venv`
+The next most useful things would be:
 
-Attivazione:
+- a rooted `arm64` capture target
+- a full BLE capture that actually contains ATT writes and notifications
+- deeper recovery of the `libapp.so` dashboard/image wrapper structure
+
+## How to contribute
+
+Useful contributions include:
+
+- better BLE captures with real ATT payloads
+- rooted-device Frida traces of write/notify traffic
+- deeper static RE of `libapp.so`
+- better guesses or recovery of dashboard protobuf structure
+- reproducing or validating findings on different firmware versions
+
+If you contribute, please keep these distinctions clear:
+
+- confirmed facts
+- high-confidence inference
+- open hypothesis
+
+That separation matters a lot in this project.
+
+## Project metadata
+
+- [DISCLAIMER.md](DISCLAIMER.md)
+- [ROADMAP.md](ROADMAP.md)
+- [LICENSE](LICENSE)
+
+## Current caution
+
+Do not over-interpret the current sender as "the protocol". It is still a probe
+built from partial structure recovery, not from ground-truth runtime payloads.
+
+The current direction is useful because it is less blind than earlier BMP-field
+guesses, but the real app path is still likely deeper than the sender model.
+
+## Python environment
+
+This workspace uses the local virtual environment:
 
 ```bash
-source /home/loneobs/Code/Even/RE/even-apks/base/.venv/bin/activate
+source .venv/bin/activate
 ```
