@@ -1,0 +1,9 @@
+package com.mapbox.maps;
+
+/* loaded from: /home/loneobs/Code/Even/RE/even-apks/base/decrypted_dex/classes3.dex */
+public final /* synthetic */ class j implements MapLoadingErrorCallback {
+    @Override // com.mapbox.maps.MapLoadingErrorCallback
+    public final void run(MapLoadingError mapLoadingError) {
+        NativeObserver.addOnMapLoadErrorListener$lambda$5(null, mapLoadingError);
+    }
+}

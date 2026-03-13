@@ -1,0 +1,40 @@
+package org.bouncycastle.cert.jcajce;
+
+import com.stub.StubApp;
+import java.security.Provider;
+import java.security.cert.CertificateException;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.X509ContentVerifierProviderBuilder;
+import org.bouncycastle.operator.ContentVerifierProvider;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
+
+/* loaded from: /home/loneobs/Code/Even/RE/even-apks/base/decrypted_dex/classes2.dex */
+public class JcaX509ContentVerifierProviderBuilder implements X509ContentVerifierProviderBuilder {
+    private JcaContentVerifierProviderBuilder builder = new JcaContentVerifierProviderBuilder();
+
+    @Override // org.bouncycastle.cert.X509ContentVerifierProviderBuilder
+    public ContentVerifierProvider build(SubjectPublicKeyInfo subjectPublicKeyInfo) throws OperatorCreationException {
+        return this.builder.build(subjectPublicKeyInfo);
+    }
+
+    public JcaX509ContentVerifierProviderBuilder setProvider(String str) {
+        this.builder.setProvider(str);
+        return this;
+    }
+
+    @Override // org.bouncycastle.cert.X509ContentVerifierProviderBuilder
+    public ContentVerifierProvider build(X509CertificateHolder x509CertificateHolder) throws OperatorCreationException {
+        try {
+            return this.builder.build(x509CertificateHolder);
+        } catch (CertificateException e10) {
+            throw new OperatorCreationException(StubApp.getString2(28095) + e10.getMessage(), e10);
+        }
+    }
+
+    public JcaX509ContentVerifierProviderBuilder setProvider(Provider provider) {
+        this.builder.setProvider(provider);
+        return this;
+    }
+}

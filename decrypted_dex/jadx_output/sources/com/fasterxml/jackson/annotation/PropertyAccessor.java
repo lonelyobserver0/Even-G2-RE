@@ -1,0 +1,12 @@
+package com.fasterxml.jackson.annotation;
+
+/* loaded from: /home/loneobs/Code/Even/RE/even-apks/base/decrypted_dex/classes3.dex */
+public enum PropertyAccessor {
+    GETTER,
+    SETTER,
+    CREATOR,
+    FIELD,
+    IS_GETTER,
+    NONE,
+    ALL
+}

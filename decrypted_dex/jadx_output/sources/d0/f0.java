@@ -1,0 +1,7 @@
+package d0;
+
+import android.util.AndroidRuntimeException;
+
+/* loaded from: /home/loneobs/Code/Even/RE/even-apks/base/decrypted_dex/classes1.dex */
+public final class f0 extends AndroidRuntimeException {
+}

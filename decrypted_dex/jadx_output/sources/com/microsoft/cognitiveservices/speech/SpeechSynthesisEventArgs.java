@@ -1,0 +1,41 @@
+package com.microsoft.cognitiveservices.speech;
+
+import com.microsoft.cognitiveservices.speech.util.Contracts;
+import com.microsoft.cognitiveservices.speech.util.IntRef;
+import com.microsoft.cognitiveservices.speech.util.SafeHandle;
+import com.microsoft.cognitiveservices.speech.util.SafeHandleType;
+import com.stub.StubApp;
+
+/* loaded from: /home/loneobs/Code/Even/RE/even-apks/base/decrypted_dex/classes1.dex */
+public class SpeechSynthesisEventArgs implements AutoCloseable {
+    private SafeHandle eventHandle;
+    private SpeechSynthesisResult result;
+
+    public SpeechSynthesisEventArgs(long j) {
+        Contracts.throwIfNull(j, StubApp.getString2(15897));
+        this.eventHandle = new SafeHandle(j, SafeHandleType.SynthesisEvent);
+        IntRef intRef = new IntRef(0L);
+        Contracts.throwIfFail(getSynthesisResult(this.eventHandle, intRef));
+        this.result = new SpeechSynthesisResult(intRef);
+    }
+
+    private final native long getSynthesisResult(SafeHandle safeHandle, IntRef intRef);
+
+    @Override // java.lang.AutoCloseable
+    public void close() {
+        SafeHandle safeHandle = this.eventHandle;
+        if (safeHandle != null) {
+            safeHandle.close();
+            this.eventHandle = null;
+        }
+        SpeechSynthesisResult speechSynthesisResult = this.result;
+        if (speechSynthesisResult != null) {
+            speechSynthesisResult.close();
+            this.result = null;
+        }
+    }
+
+    public SpeechSynthesisResult getResult() {
+        return this.result;
+    }
+}

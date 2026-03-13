@@ -1,0 +1,12 @@
+package n;
+
+import android.graphics.Insets;
+import android.graphics.drawable.Drawable;
+
+/* renamed from: n.j0, reason: case insensitive filesystem */
+/* loaded from: /home/loneobs/Code/Even/RE/even-apks/base/decrypted_dex/classes1.dex */
+public abstract class AbstractC1344j0 {
+    public static Insets a(Drawable drawable) {
+        return drawable.getOpticalInsets();
+    }
+}

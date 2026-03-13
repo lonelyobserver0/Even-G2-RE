@@ -1,0 +1,8 @@
+package Ic;
+
+import java.security.cert.X509Certificate;
+
+/* loaded from: /home/loneobs/Code/Even/RE/even-apks/base/decrypted_dex/classes2.dex */
+public interface d {
+    X509Certificate a(X509Certificate x509Certificate);
+}

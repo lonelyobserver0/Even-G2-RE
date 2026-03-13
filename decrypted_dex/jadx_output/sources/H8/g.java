@@ -1,0 +1,8 @@
+package H8;
+
+import L7.i;
+
+/* loaded from: /home/loneobs/Code/Even/RE/even-apks/base/decrypted_dex/classes3.dex */
+public interface g {
+    i g();
+}

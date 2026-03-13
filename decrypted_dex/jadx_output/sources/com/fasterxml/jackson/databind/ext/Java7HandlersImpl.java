@@ -1,0 +1,5 @@
+package com.fasterxml.jackson.databind.ext;
+
+/* loaded from: /home/loneobs/Code/Even/RE/even-apks/base/decrypted_dex/classes3.dex */
+public abstract class Java7HandlersImpl extends Java7Handlers {
+}
